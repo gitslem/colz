@@ -92,10 +92,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/profile/label', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      console.log('[LABEL PROFILE] Saving profile for user:', userId, 'Data:', req.body);
       const profile = await storage.createOrUpdateLabelProfile(req.body, userId);
-      res.json(profile);
+      console.log('[LABEL PROFILE] Profile saved successfully:', profile);
+      res.status(201).json(profile);
     } catch (error) {
-      console.error("Error saving label profile:", error);
+      console.error("[LABEL PROFILE] Error saving label profile:", error);
       res.status(500).json({ message: "Failed to save profile" });
     }
   });
@@ -222,21 +224,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/opportunities', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      console.log('[OPPORTUNITY] Creating opportunity for user:', userId);
       const labelProfile = await storage.getLabelProfile(userId);
 
       if (!labelProfile) {
+        console.log('[OPPORTUNITY] No label profile found for user:', userId);
         return res.status(403).json({ message: "Label profile required" });
       }
 
       const { deadline, ...restBody } = req.body;
+      console.log('[OPPORTUNITY] Creating opportunity with data:', { ...restBody, labelId: labelProfile.id });
       const opportunity = await storage.createOpportunity({
         ...restBody,
         labelId: labelProfile.id,
         deadline: deadline ? new Date(deadline) : null,
       });
-      res.json(opportunity);
+      console.log('[OPPORTUNITY] Opportunity created successfully:', opportunity);
+      res.status(201).json(opportunity);
     } catch (error) {
-      console.error("Error creating opportunity:", error);
+      console.error("[OPPORTUNITY] Error creating opportunity:", error);
       res.status(500).json({ message: "Failed to create opportunity" });
     }
   });
