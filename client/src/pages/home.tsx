@@ -17,6 +17,7 @@ import {
   FileText,
   MessageSquare,
   Settings as SettingsIcon,
+  BarChart3,
 } from "lucide-react";
 import type { Opportunity, Project, User as UserType } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,6 +80,10 @@ export default function Home() {
                   <Link href="/applications" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-applications">
                     <FileText className="mr-2 inline-block h-4 w-4" />
                     Applications
+                  </Link>
+                  <Link href="/analytics" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-analytics">
+                    <BarChart3 className="mr-2 inline-block h-4 w-4" />
+                    Analytics
                   </Link>
                 </>
               )}

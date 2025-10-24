@@ -596,6 +596,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/analytics/opportunities', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'label') {
+        return res.status(403).json({ message: "Only labels can access analytics" });
+      }
+
+      const labelProfile = await storage.getLabelProfile(userId);
+      if (!labelProfile) {
+        return res.status(404).json({ message: "Label profile not found" });
+      }
+
+      const analytics = await storage.getOpportunityAnalytics(labelProfile.id);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching opportunity analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  app.get('/api/analytics/application-breakdown', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.role !== 'label') {
+        return res.status(403).json({ message: "Only labels can access analytics" });
+      }
+
+      const labelProfile = await storage.getLabelProfile(userId);
+      if (!labelProfile) {
+        return res.status(404).json({ message: "Label profile not found" });
+      }
+
+      const breakdown = await storage.getApplicationStatusBreakdown(labelProfile.id);
+      res.json(breakdown);
+    } catch (error) {
+      console.error("Error fetching application breakdown:", error);
+      res.status(500).json({ message: "Failed to fetch application breakdown" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

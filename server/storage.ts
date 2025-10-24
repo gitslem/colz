@@ -78,6 +78,21 @@ export interface IStorage {
 
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   createOrUpdateUserPreferences(data: Omit<InsertUserPreferences, "userId">, userId: string): Promise<UserPreferences>;
+
+  getOpportunityAnalytics(labelId: string): Promise<{
+    opportunityId: string;
+    title: string;
+    totalApplications: number;
+    pendingApplications: number;
+    acceptedApplications: number;
+    rejectedApplications: number;
+    acceptanceRate: number;
+    createdAt: Date | null;
+  }[]>;
+  getApplicationStatusBreakdown(labelId: string): Promise<{
+    status: string;
+    count: number;
+  }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -448,6 +463,65 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  async getOpportunityAnalytics(labelId: string): Promise<{
+    opportunityId: string;
+    title: string;
+    totalApplications: number;
+    pendingApplications: number;
+    acceptedApplications: number;
+    rejectedApplications: number;
+    acceptanceRate: number;
+    createdAt: Date | null;
+  }[]> {
+    const results = await db
+      .select({
+        opportunityId: opportunities.id,
+        title: opportunities.title,
+        createdAt: opportunities.createdAt,
+        totalApplications: sql<number>`count(${applications.id})`,
+        pendingApplications: sql<number>`sum(case when ${applications.status} = 'pending' then 1 else 0 end)`,
+        acceptedApplications: sql<number>`sum(case when ${applications.status} = 'accepted' then 1 else 0 end)`,
+        rejectedApplications: sql<number>`sum(case when ${applications.status} = 'rejected' then 1 else 0 end)`,
+      })
+      .from(opportunities)
+      .leftJoin(applications, eq(opportunities.id, applications.opportunityId))
+      .where(eq(opportunities.labelId, labelId))
+      .groupBy(opportunities.id, opportunities.title, opportunities.createdAt);
+
+    return results.map((row) => ({
+      opportunityId: row.opportunityId,
+      title: row.title,
+      totalApplications: Number(row.totalApplications),
+      pendingApplications: Number(row.pendingApplications),
+      acceptedApplications: Number(row.acceptedApplications),
+      rejectedApplications: Number(row.rejectedApplications),
+      acceptanceRate: Number(row.totalApplications) > 0 
+        ? Math.round((Number(row.acceptedApplications) / Number(row.totalApplications)) * 100)
+        : 0,
+      createdAt: row.createdAt,
+    }));
+  }
+
+  async getApplicationStatusBreakdown(labelId: string): Promise<{
+    status: string;
+    count: number;
+  }[]> {
+    const results = await db
+      .select({
+        status: applications.status,
+        count: sql<number>`count(*)`,
+      })
+      .from(applications)
+      .innerJoin(opportunities, eq(applications.opportunityId, opportunities.id))
+      .where(eq(opportunities.labelId, labelId))
+      .groupBy(applications.status);
+
+    return results.map((row) => ({
+      status: row.status,
+      count: Number(row.count),
+    }));
   }
 }
 

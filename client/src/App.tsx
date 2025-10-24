@@ -16,6 +16,7 @@ import OpportunityDetail from "@/pages/opportunity-detail";
 import Applications from "@/pages/applications";
 import Messages from "@/pages/messages";
 import Settings from "@/pages/settings";
+import Analytics from "@/pages/analytics";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -54,6 +55,7 @@ function Router() {
           <Route path="/applications" component={Applications} />
           <Route path="/messages" component={Messages} />
           <Route path="/settings" component={Settings} />
+          <Route path="/analytics" component={Analytics} />
           <Route component={NotFound} />
         </>
       )}
