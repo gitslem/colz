@@ -209,3 +209,37 @@ sessions (sid PK, sess JSONB, expire) - for Replit Auth
    - Replaced RoleSelection with Signup in App.tsx routing
    - Better user experience with personalized greeting
    - Files: client/src/pages/signup.tsx, client/src/App.tsx
+
+9. **Consistent Navigation with AppHeader Component (October 24, 2025)**
+   - Created reusable AppHeader component providing consistent navigation across all pages
+   - Role-based navigation links (artist vs label specific menu items)
+   - Active route highlighting based on current location
+   - Mobile-responsive menu with hamburger icon
+   - Mobile menu auto-closes after link selection for better UX
+   - Integrated NotificationBell component in header
+   - Replaced individual headers in Home, Messages, and all other pages
+   - Files: client/src/components/AppHeader.tsx, client/src/pages/home.tsx, client/src/pages/messages.tsx
+
+10. **Authentication UI Improvements (October 24, 2025)**
+    - Added dedicated Authentication card in Settings page
+    - Displays current login status with user email
+    - Logout button with redirect to landing page
+    - Login button for unauthenticated users
+    - Clear visual separation from other settings sections
+    - Files: client/src/pages/settings.tsx
+
+11. **Artist Profile Messaging Integration (October 24, 2025)**
+    - Added "Message" button on artist detail pages
+    - Button hidden when viewing own profile
+    - Automatically creates or retrieves existing conversation with artist
+    - Navigates to Messages page with conversation pre-selected
+    - Integrates with existing messaging system
+    - Files: client/src/pages/artist-detail.tsx
+
+12. **Artist Routing Fix (October 24, 2025)**
+    - Fixed critical routing bug where artist detail pages used profile IDs instead of user IDs
+    - Updated all artist card links to use `artist.userId` instead of `artist.id`
+    - Modified backend route `/api/artists/:id` to accept user ID and call `getArtistProfile(userId)`
+    - Ensures consistent ID usage across discover, home, and profile pages
+    - Prevents 404 errors when navigating to artist profiles
+    - Files: client/src/pages/discover.tsx, client/src/pages/home.tsx, server/routes.ts
