@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import type { Opportunity, Project, User as UserType } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export default function Home() {
   const { user } = useAuth();
@@ -88,6 +89,7 @@ export default function Home() {
             </nav>
 
             <div className="flex items-center gap-2">
+              <NotificationBell />
               <Button
                 variant="ghost"
                 size="icon"

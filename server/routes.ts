@@ -255,6 +255,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         artistId: artistProfile.id,
         coverLetter: req.body.coverLetter || "",
       });
+
+      const opportunity = await storage.getOpportunityById(req.params.id);
+      const labelProfile = opportunity && await storage.getLabelProfileById(opportunity.labelId);
+      const artist = await storage.getUser(userId);
+      
+      if (labelProfile && opportunity && artist) {
+        await storage.createNotification({
+          userId: labelProfile.userId,
+          type: 'application_submitted',
+          title: 'New Application',
+          message: `${artist.firstName || 'Someone'} applied to "${opportunity.title}"`,
+          relatedId: application.id,
+          read: 0,
+        });
+      }
+
       res.json(application);
     } catch (error) {
       console.error("Error creating application:", error);
@@ -360,6 +376,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const application = await storage.updateApplicationStatus(req.params.id, status);
+      
+      if (status === 'accepted' || status === 'rejected') {
+        const artistProfile = await storage.getArtistProfileById(application.artistId);
+        const opportunity = await storage.getOpportunityById(application.opportunityId);
+        
+        if (artistProfile && opportunity) {
+          await storage.createNotification({
+            userId: artistProfile.userId,
+            type: `application_${status}`,
+            title: status === 'accepted' ? 'Application Accepted!' : 'Application Status Update',
+            message: `Your application for "${opportunity.title}" has been ${status}`,
+            relatedId: application.id,
+            read: 0,
+          });
+        }
+      }
+
       res.json(application);
     } catch (error) {
       console.error("Error updating application status:", error);
@@ -451,10 +484,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         read: 0,
       });
 
+      const recipientId = conversation.participant1Id === userId ? conversation.participant2Id : conversation.participant1Id;
+      const sender = await storage.getUser(userId);
+      
+      await storage.createNotification({
+        userId: recipientId,
+        type: 'new_message',
+        title: 'New Message',
+        message: `${sender?.firstName || 'Someone'} sent you a message`,
+        relatedId: conversationId,
+        read: 0,
+      });
+
       res.json(message);
     } catch (error) {
       console.error("Error sending message:", error);
       res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  app.get('/api/notifications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const notifications = await storage.getNotificationsByUser(userId);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get('/api/notifications/unread-count', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const count = await storage.getUnreadNotificationCount(userId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
+  app.patch('/api/notifications/:id/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const notification = await storage.markNotificationAsRead(req.params.id, userId);
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found or access denied" });
+      }
+      res.json(notification);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  app.post('/api/notifications/mark-all-read', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.markAllNotificationsAsRead(userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
     }
   });
 

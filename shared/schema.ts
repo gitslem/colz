@@ -240,3 +240,30 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar("type", { length: 50 }).notNull(), // 'application_submitted', 'application_accepted', 'application_rejected', 'new_message', 'new_opportunity'
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  relatedId: varchar("related_id"), // ID of related entity (application, message, opportunity)
+  read: integer("read").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
