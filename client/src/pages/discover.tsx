@@ -43,8 +43,8 @@ export default function Discover() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "opportunities" | "projects" | "artists">("all");
-  const [selectedGenre, setSelectedGenre] = useState<string>("");
-  const [selectedSkill, setSelectedSkill] = useState<string>("");
+  const [selectedGenre, setSelectedGenre] = useState<string>("all");
+  const [selectedSkill, setSelectedSkill] = useState<string>("all");
 
   const { data: opportunities, isLoading: opportunitiesLoading } = useQuery<
     (Opportunity & { label: { companyName: string; logoUrl: string | null } })[]
@@ -68,8 +68,8 @@ export default function Discover() {
     const matchesSearch =
       opp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       opp.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGenre = !selectedGenre || opp.genres.includes(selectedGenre);
-    const matchesSkill = !selectedSkill || opp.requiredSkills.includes(selectedSkill);
+    const matchesGenre = selectedGenre === "all" || opp.genres.includes(selectedGenre);
+    const matchesSkill = selectedSkill === "all" || opp.requiredSkills.includes(selectedSkill);
     return matchesSearch && matchesGenre && matchesSkill;
   });
 
@@ -77,7 +77,7 @@ export default function Discover() {
     const matchesSearch =
       proj.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       proj.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGenre = !selectedGenre || proj.genres.includes(selectedGenre);
+    const matchesGenre = selectedGenre === "all" || proj.genres.includes(selectedGenre);
     return matchesSearch && matchesGenre;
   });
 
@@ -86,8 +86,8 @@ export default function Discover() {
       artist.user.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       artist.user.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       artist.bio?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesGenre = !selectedGenre || artist.genres.includes(selectedGenre);
-    const matchesSkill = !selectedSkill || artist.skills.includes(selectedSkill);
+    const matchesGenre = selectedGenre === "all" || artist.genres.includes(selectedGenre);
+    const matchesSkill = selectedSkill === "all" || artist.skills.includes(selectedSkill);
     return matchesSearch && matchesGenre && matchesSkill;
   });
 
@@ -95,11 +95,11 @@ export default function Discover() {
   const showProjects = filterType === "all" || filterType === "projects";
   const showArtists = filterType === "all" || filterType === "artists";
 
-  const hasActiveFilters = selectedGenre || selectedSkill;
+  const hasActiveFilters = selectedGenre !== "all" || selectedSkill !== "all";
 
   const clearFilters = () => {
-    setSelectedGenre("");
-    setSelectedSkill("");
+    setSelectedGenre("all");
+    setSelectedSkill("all");
     setSearchQuery("");
   };
 
@@ -147,7 +147,7 @@ export default function Discover() {
                 <SelectValue placeholder="Genre" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Genres</SelectItem>
+                <SelectItem value="all">All Genres</SelectItem>
                 {COMMON_GENRES.map((genre) => (
                   <SelectItem key={genre} value={genre}>
                     {genre}
@@ -161,7 +161,7 @@ export default function Discover() {
                 <SelectValue placeholder="Skill" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Skills</SelectItem>
+                <SelectItem value="all">All Skills</SelectItem>
                 {COMMON_SKILLS.map((skill) => (
                   <SelectItem key={skill} value={skill}>
                     {skill}

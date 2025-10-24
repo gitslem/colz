@@ -228,9 +228,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Label profile required" });
       }
 
+      const { deadline, ...restBody } = req.body;
       const opportunity = await storage.createOpportunity({
-        ...req.body,
+        ...restBody,
         labelId: labelProfile.id,
+        deadline: deadline ? new Date(deadline) : null,
       });
       res.json(opportunity);
     } catch (error) {

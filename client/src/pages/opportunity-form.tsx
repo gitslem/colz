@@ -76,13 +76,17 @@ export default function OpportunityForm() {
     mutationFn: async (data: OpportunityFormData & { requiredSkills: string[]; genres: string[] }) => {
       return await apiRequest("POST", "/api/opportunities", data);
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/opportunities"] });
       toast({
         title: "Success",
         description: "Opportunity created successfully",
       });
-      setLocation("/");
+      if (data?.id) {
+        setLocation(`/opportunities/${data.id}`);
+      } else {
+        setLocation("/discover");
+      }
     },
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {

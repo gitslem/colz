@@ -153,3 +153,24 @@ sessions (sid PK, sess JSONB, expire) - for Replit Auth
    - Detailed metrics table showing per-opportunity statistics
    - Endpoints: GET /api/analytics/opportunities, GET /api/analytics/application-breakdown
    - Navigation: Analytics link visible only to label users
+
+### Bug Fixes (October 24, 2025)
+
+1. **Discover Page Filter Bug**
+   - Fixed SelectItem components with empty string values causing errors
+   - Changed filter default values from "" to "all"
+   - Updated filter logic to properly handle "all" as the reset value
+   - Files: client/src/pages/discover.tsx
+
+2. **Opportunity Creation Deadline Bug**
+   - Added date string to Date object conversion in POST /api/opportunities route
+   - Properly handles optional deadline field (converts to Date or null)
+   - Prevents database insertion errors for date fields
+   - Files: server/routes.ts
+
+3. **Opportunity Creation Redirect Bug**
+   - Fixed redirect after opportunity creation to navigate to detail page
+   - Changed from redirecting to "/" (causing 404) to "/opportunities/:id"
+   - Captures returned opportunity ID from API response
+   - Fallback to /discover if ID is not returned
+   - Files: client/src/pages/opportunity-form.tsx
