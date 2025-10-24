@@ -16,6 +16,7 @@ import {
   FolderOpen,
   FileText,
   MessageSquare,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import type { Opportunity, Project, User as UserType } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -91,6 +92,16 @@ export default function Home() {
 
             <div className="flex items-center gap-2">
               <NotificationBell />
+              <Button
+                variant="ghost"
+                size="icon"
+                asChild
+                data-testid="button-settings"
+              >
+                <Link href="/settings">
+                  <SettingsIcon className="h-4 w-4" />
+                </Link>
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"

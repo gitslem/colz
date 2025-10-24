@@ -15,6 +15,7 @@ import ProjectForm from "@/pages/project-form";
 import OpportunityDetail from "@/pages/opportunity-detail";
 import Applications from "@/pages/applications";
 import Messages from "@/pages/messages";
+import Settings from "@/pages/settings";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -52,6 +53,7 @@ function Router() {
           <Route path="/projects/new" component={ProjectForm} />
           <Route path="/applications" component={Applications} />
           <Route path="/messages" component={Messages} />
+          <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </>
       )}

@@ -8,6 +8,7 @@ import {
   conversations,
   messages,
   notifications,
+  userPreferences,
   type User,
   type UpsertUser,
   type ArtistProfile,
@@ -25,6 +26,8 @@ import {
   type InsertMessage,
   type Notification,
   type InsertNotification,
+  type UserPreferences,
+  type InsertUserPreferences,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, or, and, sql } from "drizzle-orm";
@@ -34,6 +37,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserRole(id: string, role: string): Promise<User>;
   updateUserProfileImage(id: string, profileImageUrl: string): Promise<User>;
+  updateUserDetails(id: string, data: { firstName?: string; lastName?: string }): Promise<User>;
 
   getArtistProfile(userId: string): Promise<ArtistProfile | undefined>;
   createOrUpdateArtistProfile(data: Omit<InsertArtistProfile, "userId">, userId: string): Promise<ArtistProfile>;
@@ -71,6 +75,9 @@ export interface IStorage {
   getUnreadNotificationCount(userId: string): Promise<number>;
   markNotificationAsRead(notificationId: string, userId: string): Promise<Notification | undefined>;
   markAllNotificationsAsRead(userId: string): Promise<void>;
+
+  getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
+  createOrUpdateUserPreferences(data: Omit<InsertUserPreferences, "userId">, userId: string): Promise<UserPreferences>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -107,6 +114,15 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set({ profileImageUrl, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserDetails(id: string, data: { firstName?: string; lastName?: string }): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
     return user;
@@ -405,6 +421,33 @@ export class DatabaseStorage implements IStorage {
       .update(notifications)
       .set({ read: 1 })
       .where(eq(notifications.userId, userId));
+  }
+
+  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+    const [prefs] = await db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId));
+    return prefs;
+  }
+
+  async createOrUpdateUserPreferences(data: Omit<InsertUserPreferences, "userId">, userId: string): Promise<UserPreferences> {
+    const existing = await this.getUserPreferences(userId);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(userPreferences)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(userPreferences.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(userPreferences)
+        .values({ ...data, userId })
+        .returning();
+      return created;
+    }
   }
 }
 

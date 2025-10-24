@@ -21,6 +21,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { firstName, lastName } = req.body;
+      const user = await storage.updateUserDetails(userId, { firstName, lastName });
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
   app.post('/api/users/role', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -547,6 +559,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
       res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+
+  app.get('/api/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const prefs = await storage.getUserPreferences(userId);
+      
+      if (!prefs) {
+        const defaultPrefs = await storage.createOrUpdateUserPreferences({
+          emailNotifications: 1,
+          applicationNotifications: 1,
+          messageNotifications: 1,
+          opportunityNotifications: 1,
+          profileVisibility: 'public',
+        }, userId);
+        return res.json(defaultPrefs);
+      }
+      
+      res.json(prefs);
+    } catch (error) {
+      console.error("Error fetching preferences:", error);
+      res.status(500).json({ message: "Failed to fetch preferences" });
+    }
+  });
+
+  app.post('/api/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const prefs = await storage.createOrUpdateUserPreferences(req.body, userId);
+      res.json(prefs);
+    } catch (error) {
+      console.error("Error updating preferences:", error);
+      res.status(500).json({ message: "Failed to update preferences" });
     }
   });
 
