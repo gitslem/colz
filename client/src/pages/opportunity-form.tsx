@@ -74,7 +74,8 @@ export default function OpportunityForm() {
 
   const createOpportunityMutation = useMutation({
     mutationFn: async (data: OpportunityFormData & { requiredSkills: string[]; genres: string[] }) => {
-      return await apiRequest("POST", "/api/opportunities", data);
+      const response = await apiRequest("POST", "/api/opportunities", data);
+      return await response.json();
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/opportunities"] });

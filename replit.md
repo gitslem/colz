@@ -174,3 +174,16 @@ sessions (sid PK, sess JSONB, expire) - for Replit Auth
    - Captures returned opportunity ID from API response
    - Fallback to /discover if ID is not returned
    - Files: client/src/pages/opportunity-form.tsx
+
+4. **Deployment Server Initialization Bug**
+   - Removed unsupported `reusePort: true` option from server.listen()
+   - Added comprehensive try-catch error handling for server initialization
+   - Changed to standard `listen(port, host, callback)` format for Cloud Run/Autoscale compatibility
+   - Files: server/index.ts
+
+5. **Missing Project Detail Page (404 Error)**
+   - Created ProjectDetail component for displaying individual project pages
+   - Added route `/projects/:id` to App.tsx router configuration
+   - Displays project media, artist information, description, genres, and duration
+   - Backend endpoint GET /api/projects/:id already existed
+   - Files: client/src/pages/project-detail.tsx, client/src/App.tsx

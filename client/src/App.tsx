@@ -13,6 +13,7 @@ import Profile from "@/pages/profile";
 import OpportunityForm from "@/pages/opportunity-form";
 import ProjectForm from "@/pages/project-form";
 import OpportunityDetail from "@/pages/opportunity-detail";
+import ProjectDetail from "@/pages/project-detail";
 import Applications from "@/pages/applications";
 import Messages from "@/pages/messages";
 import Settings from "@/pages/settings";
@@ -52,6 +53,7 @@ function Router() {
           <Route path="/opportunities/new" component={OpportunityForm} />
           <Route path="/opportunities/:id" component={OpportunityDetail} />
           <Route path="/projects/new" component={ProjectForm} />
+          <Route path="/projects/:id" component={ProjectDetail} />
           <Route path="/applications" component={Applications} />
           <Route path="/messages" component={Messages} />
           <Route path="/settings" component={Settings} />
