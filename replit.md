@@ -201,3 +201,11 @@ sessions (sid PK, sess JSONB, expire) - for Replit Auth
    - Displays artist bio, skills, genres, website, and all their projects
    - Users can now click on artist cards in Discover page to view full profiles
    - Files: client/src/pages/artist-detail.tsx, client/src/App.tsx, server/routes.ts
+
+8. **Improved Signup Flow (October 24, 2025)**
+   - Created new Signup component with two-step onboarding process
+   - Step 1: Users enter their first name and last name
+   - Step 2: Users select their role (artist or label)
+   - Replaced RoleSelection with Signup in App.tsx routing
+   - Better user experience with personalized greeting
+   - Files: client/src/pages/signup.tsx, client/src/App.tsx

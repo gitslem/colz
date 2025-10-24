@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
-import RoleSelection from "@/pages/role-selection";
+import Signup from "@/pages/signup";
 import Home from "@/pages/home";
 import Discover from "@/pages/discover";
 import Profile from "@/pages/profile";
@@ -45,7 +45,7 @@ function Router() {
         </>
       ) : !user?.role ? (
         <>
-          <Route path="/" component={RoleSelection} />
+          <Route path="/" component={Signup} />
           <Route path="*">
             <Redirect to="/" />
           </Route>
