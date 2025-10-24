@@ -1,0 +1,372 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  await setupAuth(app);
+
+  const objectStorageService = new ObjectStorageService();
+
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.post('/api/users/role', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { role } = req.body;
+
+      if (!role || (role !== "artist" && role !== "label")) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      const user = await storage.updateUserRole(userId, role);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      res.status(500).json({ message: "Failed to update role" });
+    }
+  });
+
+  app.get('/api/profile/artist', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profile = await storage.getArtistProfile(userId);
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching artist profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  app.post('/api/profile/artist', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profile = await storage.createOrUpdateArtistProfile(req.body, userId);
+      res.json(profile);
+    } catch (error) {
+      console.error("Error saving artist profile:", error);
+      res.status(500).json({ message: "Failed to save profile" });
+    }
+  });
+
+  app.get('/api/profile/label', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profile = await storage.getLabelProfile(userId);
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching label profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
+  app.post('/api/profile/label', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profile = await storage.createOrUpdateLabelProfile(req.body, userId);
+      res.json(profile);
+    } catch (error) {
+      console.error("Error saving label profile:", error);
+      res.status(500).json({ message: "Failed to save profile" });
+    }
+  });
+
+  app.post('/api/objects/upload', isAuthenticated, async (req, res) => {
+    try {
+      const privateDir = objectStorageService.getPrivateObjectDir();
+      if (!privateDir) {
+        return res.status(503).json({ 
+          message: "Object storage is not configured. Please set up object storage in the Object Storage tool." 
+        });
+      }
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ message: "Failed to get upload URL" });
+    }
+  });
+
+  app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
+    const userId = (req.user as any)?.claims?.sub;
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: ObjectPermission.READ,
+      });
+      if (!canAccess) {
+        return res.sendStatus(401);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error checking object access:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.put('/api/profile/image', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { imageURL } = req.body;
+
+      if (!imageURL) {
+        return res.status(400).json({ message: "imageURL is required" });
+      }
+
+      const imagePath = await objectStorageService.trySetObjectEntityAclPolicy(
+        imageURL,
+        {
+          owner: userId,
+          visibility: "public",
+        }
+      );
+
+      await storage.updateUserProfileImage(userId, imagePath);
+      res.json({ imagePath });
+    } catch (error) {
+      console.error("Error setting profile image:", error);
+      res.status(500).json({ message: "Failed to set profile image" });
+    }
+  });
+
+  app.put('/api/projects/media', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { mediaURL } = req.body;
+
+      if (!mediaURL) {
+        return res.status(400).json({ message: "mediaURL is required" });
+      }
+
+      const mediaPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        mediaURL,
+        {
+          owner: userId,
+          visibility: "public",
+        }
+      );
+
+      res.json({ mediaPath });
+    } catch (error) {
+      console.error("Error setting project media:", error);
+      res.status(500).json({ message: "Failed to set project media" });
+    }
+  });
+
+  app.get('/api/artists', async (req, res) => {
+    try {
+      const profiles = await storage.getArtistProfiles();
+      const profilesWithUsers = await Promise.all(
+        profiles.map(async (profile) => {
+          const user = await storage.getUser(profile.userId);
+          return { ...profile, user };
+        })
+      );
+      res.json(profilesWithUsers);
+    } catch (error) {
+      console.error("Error fetching artists:", error);
+      res.status(500).json({ message: "Failed to fetch artists" });
+    }
+  });
+
+  app.get('/api/opportunities', async (req, res) => {
+    try {
+      const opps = await storage.getOpportunities();
+      const oppsWithLabels = await Promise.all(
+        opps.map(async (opp) => {
+          const label = await storage.getLabelProfileById(opp.labelId);
+          return { ...opp, label };
+        })
+      );
+      res.json(oppsWithLabels);
+    } catch (error) {
+      console.error("Error fetching opportunities:", error);
+      res.status(500).json({ message: "Failed to fetch opportunities" });
+    }
+  });
+
+  app.post('/api/opportunities', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const labelProfile = await storage.getLabelProfile(userId);
+
+      if (!labelProfile) {
+        return res.status(403).json({ message: "Label profile required" });
+      }
+
+      const opportunity = await storage.createOpportunity({
+        ...req.body,
+        labelId: labelProfile.id,
+      });
+      res.json(opportunity);
+    } catch (error) {
+      console.error("Error creating opportunity:", error);
+      res.status(500).json({ message: "Failed to create opportunity" });
+    }
+  });
+
+  app.get('/api/opportunities/:id', async (req, res) => {
+    try {
+      const opportunity = await storage.getOpportunityById(req.params.id);
+      if (!opportunity) {
+        return res.status(404).json({ message: "Opportunity not found" });
+      }
+      const label = await storage.getLabelProfileById(opportunity.labelId);
+      res.json({ ...opportunity, label });
+    } catch (error) {
+      console.error("Error fetching opportunity:", error);
+      res.status(500).json({ message: "Failed to fetch opportunity" });
+    }
+  });
+
+  app.post('/api/opportunities/:id/apply', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const artistProfile = await storage.getArtistProfile(userId);
+
+      if (!artistProfile) {
+        return res.status(403).json({ message: "Artist profile required" });
+      }
+
+      const application = await storage.createApplication({
+        opportunityId: req.params.id,
+        artistId: artistProfile.id,
+        coverLetter: req.body.coverLetter || "",
+      });
+      res.json(application);
+    } catch (error) {
+      console.error("Error creating application:", error);
+      res.status(500).json({ message: "Failed to create application" });
+    }
+  });
+
+  app.get('/api/projects', async (req, res) => {
+    try {
+      const projects = await storage.getProjects();
+      const projectsWithArtists = await Promise.all(
+        projects.map(async (project) => {
+          const artist = await storage.getArtistProfileById(project.artistId);
+          if (!artist) return null;
+          const user = await storage.getUser(artist.userId);
+          return { ...project, artist: { ...artist, user } };
+        })
+      );
+      res.json(projectsWithArtists.filter(p => p !== null));
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  app.post('/api/projects', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const artistProfile = await storage.getArtistProfile(userId);
+
+      if (!artistProfile) {
+        return res.status(403).json({ message: "Artist profile required" });
+      }
+
+      const project = await storage.createProject({
+        ...req.body,
+        artistId: artistProfile.id,
+      });
+      res.json(project);
+    } catch (error) {
+      console.error("Error creating project:", error);
+      res.status(500).json({ message: "Failed to create project" });
+    }
+  });
+
+  app.get('/api/projects/:id', async (req, res) => {
+    try {
+      const project = await storage.getProjectById(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      const artist = await storage.getArtistProfileById(project.artistId);
+      if (!artist) {
+        return res.status(404).json({ message: "Artist not found" });
+      }
+      const user = await storage.getUser(artist.userId);
+      res.json({ ...project, artist: { ...artist, user } });
+    } catch (error) {
+      console.error("Error fetching project:", error);
+      res.status(500).json({ message: "Failed to fetch project" });
+    }
+  });
+
+  app.get('/api/applications', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const labelProfile = await storage.getLabelProfile(userId);
+
+      if (!labelProfile) {
+        return res.status(403).json({ message: "Label profile required" });
+      }
+
+      const opportunities = await storage.getOpportunitiesByLabel(labelProfile.id);
+      const allApplications = [];
+
+      for (const opp of opportunities) {
+        const apps = await storage.getApplicationsByOpportunity(opp.id);
+        for (const app of apps) {
+          const artist = await storage.getArtistProfileById(app.artistId);
+          if (artist) {
+            const user = await storage.getUser(artist.userId);
+            allApplications.push({
+              ...app,
+              artist: { ...artist, user },
+              opportunity: opp,
+            });
+          }
+        }
+      }
+
+      res.json(allApplications);
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
+  });
+
+  app.patch('/api/applications/:id/status', isAuthenticated, async (req: any, res) => {
+    try {
+      const { status } = req.body;
+      if (!status || !['pending', 'accepted', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const application = await storage.updateApplicationStatus(req.params.id, status);
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating application status:", error);
+      res.status(500).json({ message: "Failed to update application status" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
