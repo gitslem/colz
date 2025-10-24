@@ -102,6 +102,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/artists/:id', async (req, res) => {
+    try {
+      const artist = await storage.getArtistProfileById(req.params.id);
+      if (!artist) {
+        return res.status(404).json({ message: "Artist not found" });
+      }
+      const user = await storage.getUser(artist.userId);
+      res.json({ ...artist, user });
+    } catch (error) {
+      console.error("Error fetching artist:", error);
+      res.status(500).json({ message: "Failed to fetch artist" });
+    }
+  });
+
+  app.get('/api/artists/:id/projects', async (req, res) => {
+    try {
+      const projects = await storage.getProjectsByArtist(req.params.id);
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching artist projects:", error);
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
   app.post('/api/objects/upload', isAuthenticated, async (req, res) => {
     try {
       const privateDir = objectStorageService.getPrivateObjectDir();

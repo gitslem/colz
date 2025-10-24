@@ -187,3 +187,17 @@ sessions (sid PK, sess JSONB, expire) - for Replit Auth
    - Displays project media, artist information, description, genres, and duration
    - Backend endpoint GET /api/projects/:id already existed
    - Files: client/src/pages/project-detail.tsx, client/src/App.tsx
+
+6. **Home Page Content Duplication (October 24, 2025)**
+   - Fixed routing issue where Landing component was rendering twice
+   - Changed catch-all routes from `<Route component={Landing} />` to proper redirects
+   - Unauthenticated users now redirect to landing page instead of seeing 404s
+   - Files: client/src/App.tsx
+
+7. **Missing Artist Detail Page (October 24, 2025)**
+   - Created ArtistDetail component for viewing artist profiles
+   - Added backend routes: GET /api/artists/:id and GET /api/artists/:id/projects
+   - Added route `/artists/:id` to App.tsx router configuration
+   - Displays artist bio, skills, genres, website, and all their projects
+   - Users can now click on artist cards in Discover page to view full profiles
+   - Files: client/src/pages/artist-detail.tsx, client/src/App.tsx, server/routes.ts
