@@ -39,16 +39,12 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-          <Route path="*">
-            <Redirect to="/" />
-          </Route>
+          <Route component={NotFound} />
         </>
       ) : !user?.role ? (
         <>
           <Route path="/" component={Signup} />
-          <Route path="*">
-            <Redirect to="/" />
-          </Route>
+          <Route component={NotFound} />
         </>
       ) : (
         <>
