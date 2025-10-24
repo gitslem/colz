@@ -137,6 +137,8 @@ export const projects = pgTable("projects", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description").notNull(),
   mediaUrl: varchar("media_url", { length: 500 }),
+  mediaType: varchar("media_type", { length: 50 }).default('image'),
+  mediaDuration: integer("media_duration"),
   genres: text("genres").array().notNull().default(sql`ARRAY[]::text[]`),
   collaborators: integer("collaborators").default(1),
   createdAt: timestamp("created_at").defaultNow(),

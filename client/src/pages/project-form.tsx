@@ -48,6 +48,8 @@ export default function ProjectForm() {
   const [genres, setGenres] = useState<string[]>([]);
   const [newGenre, setNewGenre] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaType, setMediaType] = useState<string>("image");
+  const [mediaDuration, setMediaDuration] = useState<number | undefined>();
 
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
@@ -59,7 +61,7 @@ export default function ProjectForm() {
   });
 
   const createProjectMutation = useMutation({
-    mutationFn: async (data: ProjectFormData & { genres: string[]; mediaUrl: string }) => {
+    mutationFn: async (data: ProjectFormData & { genres: string[]; mediaUrl: string; mediaType: string; mediaDuration?: number }) => {
       return await apiRequest("POST", "/api/projects", data);
     },
     onSuccess: () => {
@@ -95,6 +97,8 @@ export default function ProjectForm() {
       ...data,
       genres,
       mediaUrl,
+      mediaType,
+      mediaDuration,
     });
   };
 
@@ -111,10 +115,26 @@ export default function ProjectForm() {
 
   const handleMediaComplete = async (uploadURL: string) => {
     try {
-      const response = await apiRequest("PUT", "/api/projects/media", {
+      const response: any = await apiRequest("PUT", "/api/projects/media", {
         mediaURL: uploadURL,
       });
       setMediaUrl(response.mediaPath);
+      
+      const fileExtension = response.mediaPath?.split('.').pop()?.toLowerCase();
+      const audioExts = ['mp3', 'wav', 'ogg', 'm4a', 'flac'];
+      const videoExts = ['mp4', 'webm', 'mov', 'avi'];
+      
+      if (audioExts.includes(fileExtension)) {
+        setMediaType('audio');
+      } else if (videoExts.includes(fileExtension)) {
+        setMediaType('video');
+      } else {
+        setMediaType('image');
+      }
+      
+      if (response.duration) {
+        setMediaDuration(response.duration);
+      }
     } catch (error: any) {
       toast({
         title: "Error",

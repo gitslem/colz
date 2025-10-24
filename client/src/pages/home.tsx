@@ -20,6 +20,7 @@ import {
 import type { Opportunity, Project, User as UserType } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotificationBell } from "@/components/NotificationBell";
+import { ProjectMediaDisplay } from "@/components/ProjectMediaDisplay";
 
 export default function Home() {
   const { user } = useAuth();
@@ -283,17 +284,7 @@ export default function Home() {
                       data-testid={`card-project-${project.id}`}
                     >
                       <div className="relative aspect-video bg-muted">
-                        {project.mediaUrl ? (
-                          <img
-                            src={project.mediaUrl}
-                            alt={project.title}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <Music className="h-12 w-12 text-muted-foreground" />
-                          </div>
-                        )}
+                        <ProjectMediaDisplay project={project} />
                       </div>
                       <div className="p-6">
                         <h3 className="font-serif text-lg font-semibold line-clamp-1">
