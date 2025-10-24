@@ -38,12 +38,12 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-          <Route component={Landing} />
+          <Route component={NotFound} />
         </>
       ) : !user?.role ? (
         <>
           <Route path="/" component={RoleSelection} />
-          <Route component={RoleSelection} />
+          <Route component={NotFound} />
         </>
       ) : (
         <>
