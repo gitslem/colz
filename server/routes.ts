@@ -104,11 +104,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/artists/:id', async (req, res) => {
     try {
-      const artist = await storage.getArtistProfileById(req.params.id);
+      const userId = req.params.id;
+      const artist = await storage.getArtistProfile(userId);
       if (!artist) {
         return res.status(404).json({ message: "Artist not found" });
       }
-      const user = await storage.getUser(artist.userId);
+      const user = await storage.getUser(userId);
       res.json({ ...artist, user });
     } catch (error) {
       console.error("Error fetching artist:", error);
@@ -118,7 +119,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/artists/:id/projects', async (req, res) => {
     try {
-      const projects = await storage.getProjectsByArtist(req.params.id);
+      const userId = req.params.id;
+      const projects = await storage.getProjectsByArtist(userId);
       res.json(projects);
     } catch (error) {
       console.error("Error fetching artist projects:", error);

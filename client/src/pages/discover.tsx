@@ -349,8 +349,8 @@ export default function Discover() {
                     <Card
                       key={artist.id}
                       className="cursor-pointer p-6 hover-elevate"
-                      onClick={() => setLocation(`/artists/${artist.id}`)}
-                      data-testid={`card-artist-${artist.id}`}
+                      onClick={() => setLocation(`/artists/${artist.userId}`)}
+                      data-testid={`card-artist-${artist.userId}`}
                     >
                       <div className="flex items-center gap-4">
                         <Avatar className="h-16 w-16">
