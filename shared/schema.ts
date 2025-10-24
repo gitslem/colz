@@ -189,3 +189,54 @@ export const insertApplicationSchema = createInsertSchema(applications).omit({
 
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 export type Application = typeof applications.$inferSelect;
+
+// Conversations table (1-to-1 messaging between users)
+export const conversations = pgTable("conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  participant1Id: varchar("participant1_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  participant2Id: varchar("participant2_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const conversationsRelations = relations(conversations, ({ one }) => ({
+  participant1: one(users, {
+    fields: [conversations.participant1Id],
+    references: [users.id],
+  }),
+  participant2: one(users, {
+    fields: [conversations.participant2Id],
+    references: [users.id],
+  }),
+}));
+
+export type Conversation = typeof conversations.$inferSelect;
+
+// Messages table
+export const messages = pgTable("messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  senderId: varchar("sender_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  content: text("content").notNull(),
+  read: integer("read").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+  }),
+}));
+
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Message = typeof messages.$inferSelect;

@@ -15,6 +15,7 @@ import {
   Briefcase,
   FolderOpen,
   FileText,
+  MessageSquare,
 } from "lucide-react";
 import type { Opportunity, Project, User as UserType } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -61,6 +62,10 @@ export default function Home() {
               <Link href="/discover" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-discover">
                 <Search className="mr-2 inline-block h-4 w-4" />
                 Discover
+              </Link>
+              <Link href="/messages" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-messages">
+                <MessageSquare className="mr-2 inline-block h-4 w-4" />
+                Messages
               </Link>
               {user?.role === "label" && (
                 <>

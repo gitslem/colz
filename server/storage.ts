@@ -5,6 +5,8 @@ import {
   opportunities,
   projects,
   applications,
+  conversations,
+  messages,
   type User,
   type UpsertUser,
   type ArtistProfile,
@@ -17,9 +19,12 @@ import {
   type InsertProject,
   type Application,
   type InsertApplication,
+  type Conversation,
+  type Message,
+  type InsertMessage,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, or, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -51,6 +56,12 @@ export interface IStorage {
   getApplicationsByOpportunity(opportunityId: string): Promise<Application[]>;
   getApplicationsByArtist(artistId: string): Promise<Application[]>;
   updateApplicationStatus(id: string, status: string): Promise<Application>;
+
+  getOrCreateConversation(user1Id: string, user2Id: string): Promise<Conversation>;
+  getConversationsByUser(userId: string): Promise<Conversation[]>;
+  sendMessage(data: InsertMessage): Promise<Message>;
+  getMessagesByConversation(conversationId: string): Promise<Message[]>;
+  markMessageAsRead(messageId: string): Promise<Message>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -263,6 +274,81 @@ export class DatabaseStorage implements IStorage {
       .where(eq(applications.id, id))
       .returning();
     return application;
+  }
+
+  async getOrCreateConversation(user1Id: string, user2Id: string): Promise<Conversation> {
+    const existing = await db
+      .select()
+      .from(conversations)
+      .where(
+        or(
+          and(
+            eq(conversations.participant1Id, user1Id),
+            eq(conversations.participant2Id, user2Id)
+          ),
+          and(
+            eq(conversations.participant1Id, user2Id),
+            eq(conversations.participant2Id, user1Id)
+          )
+        )
+      );
+    
+    if (existing.length > 0) {
+      return existing[0];
+    }
+
+    const [conversation] = await db
+      .insert(conversations)
+      .values({
+        participant1Id: user1Id,
+        participant2Id: user2Id,
+      })
+      .returning();
+    return conversation;
+  }
+
+  async getConversationsByUser(userId: string): Promise<Conversation[]> {
+    return await db
+      .select()
+      .from(conversations)
+      .where(
+        or(
+          eq(conversations.participant1Id, userId),
+          eq(conversations.participant2Id, userId)
+        )
+      )
+      .orderBy(desc(conversations.lastMessageAt));
+  }
+
+  async sendMessage(data: InsertMessage): Promise<Message> {
+    const [message] = await db
+      .insert(messages)
+      .values(data)
+      .returning();
+
+    await db
+      .update(conversations)
+      .set({ lastMessageAt: new Date() })
+      .where(eq(conversations.id, data.conversationId));
+
+    return message;
+  }
+
+  async getMessagesByConversation(conversationId: string): Promise<Message[]> {
+    return await db
+      .select()
+      .from(messages)
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(messages.createdAt);
+  }
+
+  async markMessageAsRead(messageId: string): Promise<Message> {
+    const [message] = await db
+      .update(messages)
+      .set({ read: 1 })
+      .where(eq(messages.id, messageId))
+      .returning();
+    return message;
   }
 }
 

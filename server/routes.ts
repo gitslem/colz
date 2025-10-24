@@ -367,6 +367,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/conversations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversations = await storage.getConversationsByUser(userId);
+      
+      const conversationsWithParticipants = await Promise.all(
+        conversations.map(async (conv) => {
+          const otherUserId = conv.participant1Id === userId ? conv.participant2Id : conv.participant1Id;
+          const otherUser = await storage.getUser(otherUserId);
+          return {
+            ...conv,
+            otherUser,
+          };
+        })
+      );
+
+      res.json(conversationsWithParticipants);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get('/api/conversations/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const otherUserId = req.params.userId;
+      
+      const conversation = await storage.getOrCreateConversation(currentUserId, otherUserId);
+      const otherUser = await storage.getUser(otherUserId);
+      
+      res.json({
+        ...conversation,
+        otherUser,
+      });
+    } catch (error) {
+      console.error("Error getting conversation:", error);
+      res.status(500).json({ message: "Failed to get conversation" });
+    }
+  });
+
+  app.get('/api/messages/:conversationId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const conversationId = req.params.conversationId;
+      
+      const conversations = await storage.getConversationsByUser(userId);
+      const conversation = conversations.find(c => c.id === conversationId);
+      
+      if (!conversation) {
+        return res.status(403).json({ message: "Access denied - not a participant in this conversation" });
+      }
+
+      const messages = await storage.getMessagesByConversation(conversationId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.post('/api/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { conversationId, content } = req.body;
+
+      if (!conversationId || !content) {
+        return res.status(400).json({ message: "Conversation ID and content are required" });
+      }
+
+      const conversations = await storage.getConversationsByUser(userId);
+      const conversation = conversations.find(c => c.id === conversationId);
+      
+      if (!conversation) {
+        return res.status(403).json({ message: "Access denied - not a participant in this conversation" });
+      }
+
+      const message = await storage.sendMessage({
+        conversationId,
+        senderId: userId,
+        content,
+        read: 0,
+      });
+
+      res.json(message);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
