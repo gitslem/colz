@@ -243,3 +243,11 @@ sessions (sid PK, sess JSONB, expire) - for Replit Auth
     - Ensures consistent ID usage across discover, home, and profile pages
     - Prevents 404 errors when navigating to artist profiles
     - Files: client/src/pages/discover.tsx, client/src/pages/home.tsx, server/routes.ts
+
+13. **404 Page Handling Fix (October 24, 2025)**
+    - Fixed routing bug where invalid routes showed landing/signup pages instead of 404 page
+    - Changed catch-all routes from `<Redirect to="/" />` to `<Route component={NotFound} />`
+    - Now properly displays "404 Page Not Found" for all non-existent routes
+    - Applies to all authentication states: unauthenticated, no role, and authenticated users
+    - Improves error visibility and helps identify broken links
+    - Files: client/src/App.tsx
