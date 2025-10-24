@@ -1,0 +1,81 @@
+COLZ
+
+Colz is a mobile application that connects artists and individuals. Artists can connect with other artists and individuals, post opportunities for collaboration with other artists or for individuals for hire. Individuals can post opportunities to hire artists. Chat feature for communication and social media linking and other features as in the Figma design and WBS.
+
+https://www.figma.com/proto/yz8zGOb2fOuWNNkJZP7JVI/COLLABSPHERE-MUSIC-APP?pag
+e-id=82%3A7045&node-id=122-2166&p=f&viewport=222%2C-8641%2C0.53&t=BRW2VeOHgg
+3rGuLG-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=83%3A289&show
+-proto-sidebar=1
+
+https://www.figma.com/design/yz8zGOb2fOuWNNkJZP7JVI/COLLABSPHERE-MUSIC-APP?no
+de-id=251-7570&t=JZGFLRJPlI5iNIhw-0
+
+https://www.figma.com/design/yz8zGOb2fOuWNNkJZP7JVI/COLLABSPHERE-MUSIC-APP?no
+de-id=0-1&p=f&t=Uvsfp816f2GL8KQ7-0
+
+Work Breakdown Structure (WBS)
+This WBS is derived directly from the screens, components, and user flows detailed in
+the Colz Figma designs2. Each item represents a key deliverable.
+1.0 Project Management
+1.1 Project Setup & Configuration
+1.2 Sprint Planning & Backlog Grooming
+1.3 UAT & Release Management
+2.0 Core Infrastructure & Setup
+2.1 Backend Setup (Supabase: Database schema, Authentication rules, Storage
+buckets)
+2.2 Mobile App Project Initialization
+2.3 CI/CD Pipeline Configuration 
+2.4 State Management Setup 
+3.0 Global UI Kit & Components 3
+3.1 Setup Typography, Color Palette, and Spacing System
+3.2 Build Reusable Components:
+3.2.1 Buttons (Primary, Secondary, Text)
+3.2.2 Input Fields (Text, Password, Search)
+3.2.3 Modals & Alerts
+3.2.4 Card Layouts (Artist Profile, Project, Opportunity)
+3.3 Main Navigation (Bottom Tab Bar)
+4.0 User Onboarding & Authentication 4
+4.1 Splash Screen
+4.2 Welcome & Role Selection Screen (Artist/Label)
+4.3 Sign Up Flow (Email/Password & Social Providers)
+4.4 Login Flow
+4.5 Forgot Password / Password Reset Flow
+5.0 Artist User Flow 555
+5.1 Artist Profile Module
+5.1.1 Create/Edit Profile (Bio, Genres, Skills, Social Links)
+5.1.2 Portfolio Management (Upload audio/video samples)
+5.1.3 View Public Profile
+5.2 Artist Home & Discovery
+5.2.1 Home Feed (Recommended opportunities, artists)
+5.2.2 Search for Artists (with filters)
+5.2.3 Search for Opportunities (with filters)
+5.3 Artist Project Management
+5.3.1 Create/Edit Project Post
+5.3.2 View My Projects
+5.4 Opportunity Application
+5.4.1 View Opportunity Details
+5.4.2 Apply to an Opportunity
+5.4.3 Track Application Status
+6.0 Label User Flow 666
+6.1 Label Profile Module
+6.1.1 Create/Edit Profile (About, Website)
+6.2 Label Home & Discovery
+6.2.1 Home Feed (Featured artists, projects)
+6.2.2 Search for Artists (with filters)
+6.3 Label Opportunity Management
+6.3.1 Create/Edit Opportunity Post
+6.3.2 View & Manage Applicants for an Opportunity
+6.3.3 Change Applicant Status (Accepted, Rejected)
+7.0 Core Features 7
+7.1 Real-time Messaging
+7.1.1 Chat List Screen
+7.1.2 1-to-1 Chat Screen
+7.1.3 Send/Receive Messages
+7.2 Notifications System
+7.2.1 In-App Notification Center
+7.2.2 Push Notifications (New Message, Application Update, New Opportunity)
+7.3 Settings
+7.3.1 Account Management (Edit Email, Change Password)
+7.3.2 Notification Preferences
+7.3.3 Logout
+8.0 Deployment
