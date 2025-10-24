@@ -66,9 +66,13 @@ Preferred communication style: Simple, everyday language.
 users (id, email, firstName, lastName, profileImageUrl, role)
   ├── artistProfiles (userId FK, bio, location, genres[], skills[], socialLinks)
   ├── labelProfiles (userId FK, companyName, bio, website, logoUrl)
-  ├── projects (artistId FK, title, description, genres[], mediaUrls[])
-  ├── opportunities (labelId FK, title, description, genres[], skills[], compensation, deadline)
-  └── applications (opportunityId FK, artistId FK, coverLetter, status)
+  ├── projects (artistId FK, title, description, genres[], mediaUrls[], mediaType, mediaDuration)
+  ├── opportunities (labelId FK, title, description, genres[], skills[], compensation, deadline, status)
+  ├── applications (opportunityId FK, artistId FK, coverLetter, status)
+  ├── conversations (user1Id FK, user2Id FK, lastMessageAt)
+  ├── messages (conversationId FK, senderId FK, content, read)
+  ├── notifications (userId FK, type, title, message, link, read)
+  └── userPreferences (userId FK, emailNotifications, applicationNotifications, messageNotifications, opportunityNotifications, profileVisibility)
 sessions (sid PK, sess JSONB, expire) - for Replit Auth
 ```
 
@@ -109,3 +113,43 @@ sessions (sid PK, sess JSONB, expire) - for Replit Auth
 - Development: Vite dev server with Express API proxy
 - Production: Static frontend built to dist/public, backend bundled with esbuild
 - Environment variables: DATABASE_URL, SESSION_SECRET, REPLIT_DOMAINS, ISSUER_URL, PUBLIC_OBJECT_SEARCH_PATHS
+
+## Recent Changes (October 2025)
+
+### Completed Features
+
+1. **Real-time Messaging System**
+   - REST API for conversations and messages
+   - Conversation list and message thread views
+   - Real-time message delivery (no WebSocket - using REST polling)
+   - Authorization: only conversation participants can access messages
+   - Endpoints: GET/POST /api/conversations, GET/POST /api/messages, PATCH /api/messages/:id/read
+
+2. **Notification Center**
+   - NotificationBell component with dropdown UI
+   - Unread count badge
+   - Notification triggers for: application submissions, acceptances, rejections, new messages
+   - Mark as read functionality (individual and bulk)
+   - Endpoints: GET /api/notifications, POST /api/notifications/mark-read, POST /api/notifications/mark-all-read
+
+3. **Advanced Portfolio Management**
+   - Extended projects schema with mediaType (image/audio/video) and mediaDuration fields
+   - MediaPlayer components for audio/video playback with controls
+   - ProjectMediaDisplay for conditional rendering based on media type
+   - Automatic media type detection on upload
+
+4. **User Settings**
+   - Settings page with three tabs: Account, Notifications, Privacy
+   - Account tab: edit name, upload profile image
+   - Notifications tab: toggle email/application/message/opportunity notifications
+   - Privacy tab: set profile visibility (public/private/connections)
+   - Endpoints: PATCH /api/auth/user, GET/POST /api/preferences
+
+5. **Analytics Dashboard (Labels Only)**
+   - Opportunity performance metrics with aggregated application counts
+   - Application status breakdown (pending/accepted/rejected)
+   - Acceptance rate calculations per opportunity
+   - Data visualization using Recharts (bar charts, pie charts)
+   - Detailed metrics table showing per-opportunity statistics
+   - Endpoints: GET /api/analytics/opportunities, GET /api/analytics/application-breakdown
+   - Navigation: Analytics link visible only to label users
