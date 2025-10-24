@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,14 +10,20 @@ import {
   Link as LinkIcon,
   Music,
   Briefcase,
+  MessageCircle,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ArtistProfile, User as UserType, Project } from "@shared/schema";
 import { ProjectMediaDisplay } from "@/components/ProjectMediaDisplay";
+import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ArtistDetail() {
   const [, params] = useRoute("/artists/:id");
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   const { data: artist, isLoading: artistLoading } = useQuery<
     ArtistProfile & { user: UserType }
@@ -30,6 +36,29 @@ export default function ArtistDetail() {
     queryKey: ["/api/artists", params?.id, "projects"],
     enabled: !!params?.id,
   });
+
+  const startConversationMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("GET", `/api/conversations/${artist?.userId}`, undefined);
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      setLocation(`/messages?conversation=${data.id}`);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleMessage = () => {
+    if (artist) {
+      startConversationMutation.mutate();
+    }
+  };
 
   if (artistLoading) {
     return (
@@ -94,6 +123,16 @@ export default function ArtistDetail() {
                   </p>
                 )}
               </div>
+              {user && artist.userId !== user.id && (
+                <Button
+                  onClick={handleMessage}
+                  disabled={startConversationMutation.isPending}
+                  data-testid="button-message-artist"
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  {startConversationMutation.isPending ? "Loading..." : "Message"}
+                </Button>
+              )}
             </div>
           </div>
         </div>

@@ -3,26 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
-  Music,
   Building2,
-  Search,
-  PlusCircle,
-  LogOut,
-  User,
   Briefcase,
   FolderOpen,
-  FileText,
-  MessageSquare,
-  Settings as SettingsIcon,
-  BarChart3,
 } from "lucide-react";
 import type { Opportunity, Project, User as UserType } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { NotificationBell } from "@/components/NotificationBell";
 import { ProjectMediaDisplay } from "@/components/ProjectMediaDisplay";
+import { AppHeader } from "@/components/AppHeader";
 
 export default function Home() {
   const { user } = useAuth();
@@ -44,125 +34,9 @@ export default function Home() {
     queryKey: ["/api/projects"],
   });
 
-  const getUserInitials = () => {
-    if (!user) return "U";
-    if (user.firstName && user.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`;
-    }
-    return user.email?.[0]?.toUpperCase() || "U";
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <Music className="h-7 w-7 text-primary" />
-              <span className="font-serif text-2xl font-bold">COLZ</span>
-            </Link>
-
-            <nav className="hidden items-center gap-6 md:flex">
-              <Link href="/discover" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-discover">
-                <Search className="mr-2 inline-block h-4 w-4" />
-                Discover
-              </Link>
-              <Link href="/messages" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-messages">
-                <MessageSquare className="mr-2 inline-block h-4 w-4" />
-                Messages
-              </Link>
-              {user?.role === "label" && (
-                <>
-                  <Link href="/opportunities/new" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-create-opportunity">
-                    <Briefcase className="mr-2 inline-block h-4 w-4" />
-                    Post Opportunity
-                  </Link>
-                  <Link href="/applications" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-applications">
-                    <FileText className="mr-2 inline-block h-4 w-4" />
-                    Applications
-                  </Link>
-                  <Link href="/analytics" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-analytics">
-                    <BarChart3 className="mr-2 inline-block h-4 w-4" />
-                    Analytics
-                  </Link>
-                </>
-              )}
-              {user?.role === "artist" && (
-                <Link href="/projects/new" className="text-sm font-medium hover-elevate rounded-md px-3 py-2" data-testid="link-create-project">
-                  <FolderOpen className="mr-2 inline-block h-4 w-4" />
-                  Share Project
-                </Link>
-              )}
-            </nav>
-
-            <div className="flex items-center gap-2">
-              <NotificationBell />
-              <Button
-                variant="ghost"
-                size="icon"
-                asChild
-                data-testid="button-settings"
-              >
-                <Link href="/settings">
-                  <SettingsIcon className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                asChild
-                data-testid="button-profile"
-              >
-                <Link href="/profile">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.profileImageUrl || undefined} />
-                    <AvatarFallback>{getUserInitials()}</AvatarFallback>
-                  </Avatar>
-                </Link>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                asChild
-                data-testid="button-logout"
-              >
-                <a href="/api/logout">
-                  <LogOut className="h-4 w-4" />
-                </a>
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t md:hidden">
-          <div className="mx-auto max-w-7xl px-4">
-            <div className="flex items-center gap-2 py-2">
-              <Button variant="outline" size="sm" asChild className="flex-1">
-                <Link href="/discover" data-testid="link-discover-mobile">
-                  <Search className="mr-2 h-4 w-4" />
-                  Discover
-                </Link>
-              </Button>
-              {user?.role === "label" && (
-                <Button size="sm" asChild className="flex-1">
-                  <Link href="/opportunities/new" data-testid="link-create-opportunity-mobile">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Opportunity
-                  </Link>
-                </Button>
-              )}
-              {user?.role === "artist" && (
-                <Button size="sm" asChild className="flex-1">
-                  <Link href="/projects/new" data-testid="link-create-project-mobile">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Project
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">

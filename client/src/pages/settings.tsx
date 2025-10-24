@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, User, Bell, Lock } from "lucide-react";
+import { ArrowLeft, User, Bell, Lock, LogIn, LogOut } from "lucide-react";
 import { SimpleUploader } from "@/components/SimpleUploader";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import type { UserPreferences } from "@shared/schema";
@@ -269,6 +269,35 @@ export default function Settings() {
                   data-testid="button-save-account"
                 >
                   {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h2 className="font-serif text-xl font-semibold mb-4">Authentication</h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                Manage your login sessions
+              </p>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  asChild
+                  data-testid="button-login"
+                >
+                  <a href="/api/login">
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Login Again
+                  </a>
+                </Button>
+                <Button
+                  variant="destructive"
+                  asChild
+                  data-testid="button-logout"
+                >
+                  <a href="/api/logout">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </a>
                 </Button>
               </div>
             </Card>
