@@ -2,17 +2,6 @@ COLZ
 
 Colz is a mobile application that connects artists and individuals. Artists can connect with other artists and individuals, post opportunities for collaboration with other artists or for individuals for hire. Individuals can post opportunities to hire artists. Chat feature for communication and social media linking and other features as in the Figma design and WBS.
 
-https://www.figma.com/proto/yz8zGOb2fOuWNNkJZP7JVI/COLLABSPHERE-MUSIC-APP?pag
-e-id=82%3A7045&node-id=122-2166&p=f&viewport=222%2C-8641%2C0.53&t=BRW2VeOHgg
-3rGuLG-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=83%3A289&show
--proto-sidebar=1
-
-https://www.figma.com/design/yz8zGOb2fOuWNNkJZP7JVI/COLLABSPHERE-MUSIC-APP?no
-de-id=251-7570&t=JZGFLRJPlI5iNIhw-0
-
-https://www.figma.com/design/yz8zGOb2fOuWNNkJZP7JVI/COLLABSPHERE-MUSIC-APP?no
-de-id=0-1&p=f&t=Uvsfp816f2GL8KQ7-0
-
 Work Breakdown Structure (WBS)
 This WBS is derived directly from the screens, components, and user flows detailed in
 the Colz Figma designs2. Each item represents a key deliverable.
