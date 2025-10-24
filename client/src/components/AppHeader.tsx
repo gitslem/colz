@@ -59,6 +59,7 @@ export function AppHeader() {
                   size="sm"
                   className="gap-2"
                   data-testid={`link-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  onClick={() => setMobileMenuOpen(false)}
                 >
                   <link.icon className="h-4 w-4" />
                   {link.label}

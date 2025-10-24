@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Send, MessageSquare } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { User, Conversation, Message } from "@shared/schema";
 import { formatDistanceToNow } from "date-fns";
+import { AppHeader } from "@/components/AppHeader";
 
 type ConversationWithUser = Conversation & {
   otherUser: User;
@@ -20,6 +21,15 @@ export default function Messages() {
   const { user } = useAuth();
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messageContent, setMessageContent] = useState("");
+
+  // Check URL params for conversation ID
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const conversationId = params.get("conversation");
+    if (conversationId) {
+      setSelectedConversation(conversationId);
+    }
+  }, []);
 
   const { data: conversations, isLoading: conversationsLoading } = useQuery<ConversationWithUser[]>({
     queryKey: ["/api/conversations"],
@@ -62,8 +72,10 @@ export default function Messages() {
   const selectedConv = conversations?.find(c => c.id === selectedConversation);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background">
-      <div className="w-80 border-r">
+    <div className="min-h-screen bg-background flex flex-col">
+      <AppHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-80 border-r">
         <div className="p-4 border-b">
           <h2 className="text-lg font-semibold">Messages</h2>
         </div>
@@ -116,9 +128,9 @@ export default function Messages() {
             </div>
           )}
         </ScrollArea>
-      </div>
+        </div>
 
-      <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col">
         {selectedConv ? (
           <>
             <div className="p-4 border-b flex items-center gap-3">
@@ -212,6 +224,7 @@ export default function Messages() {
             </p>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
